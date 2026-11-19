@@ -1,0 +1,17 @@
+{
+  "name": "two-friends-chat",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Responsive real-time text chat for two friends using Socket.IO",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  }
+}
