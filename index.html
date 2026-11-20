@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="A simple private-room text chat for two friends.">
+  <title>Two Friends · Live Chat</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07111f;--panel:#0d1b2d;--panel2:#10243a;--line:#203b55;--cyan:#63e6ff;--text:#edf8ff;--muted:#91a9bf;--green:#73f0bd;--red:#ff9da9}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Segoe UI,Arial,sans-serif;background:radial-gradient(ellipse at top,#12304b 0%,var(--bg) 58%);color:var(--text)}
+    body{min-height:100dvh;display:grid;place-items:center;padding:18px}.app{width:min(960px,100%);height:min(820px,calc(100dvh - 36px));min-height:540px;background:rgba(8,20,35,.96);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 24px 90px #0008;display:flex;flex-direction:column}
+    header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);background:#0b1929}.logo{width:42px;height:42px;flex:0 0 auto;border:1px solid #3f9db8;border-radius:14px;display:grid;place-items:center;color:var(--cyan);font-size:22px;background:#102c41}h1{font-size:18px;margin:0 0 4px;letter-spacing:.4px}.sub{font-size:12px;color:var(--muted)}.status{margin-left:auto;display:flex;align-items:center;gap:7px;color:var(--green);font-size:12px;white-space:nowrap}.dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px #73f0bd88}
+    .join{margin:auto;width:min(430px,calc(100% - 32px));padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:18px}.join h2{margin:0 0 8px;font-size:22px}.join p{margin:0 0 22px;color:var(--muted);font-size:14px;line-height:1.5}label{display:block;font-size:12px;color:#b5cadb;margin:14px 0 7px}input{width:100%;min-width:0;padding:13px 14px;background:#071321;border:1px solid #29455f;border-radius:10px;color:var(--text);font:inherit;outline:none}input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #63e6ff17}button{border:0;border-radius:10px;padding:12px 16px;background:var(--cyan);color:#05202b;font-weight:750;font-size:14px;cursor:pointer;touch-action:manipulation}button:hover{filter:brightness(1.08)}button:disabled{opacity:.5;cursor:not-allowed}.join button{width:100%;margin-top:20px}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:14px}.error{color:var(--red);font-size:12px;min-height:17px;margin-top:10px;line-height:1.4}
+    .chat{display:none;flex:1;min-height:0;flex-direction:column}.roombar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}.roomcode{color:var(--cyan);font-weight:700;letter-spacing:1px;overflow-wrap:anywhere}.count{margin-left:auto}.copy{padding:7px 10px;font-size:12px}.messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}.system{align-self:center;font-size:11px;color:var(--muted);background:#102237;padding:6px 11px;border-radius:20px;text-align:center;max-width:100%;overflow-wrap:anywhere}.msg{max-width:min(78%,560px);padding:11px 13px;border-radius:15px;background:#12283e;border:1px solid #1e3b53;overflow-wrap:anywhere}.msg.mine{align-self:flex-end;background:#103447;border-color:#236078;border-bottom-right-radius:5px}.msg:not(.mine){align-self:flex-start;border-bottom-left-radius:5px}.meta{display:flex;gap:12px;align-items:center;margin-bottom:5px;font-size:11px;color:var(--cyan)}.meta time{color:var(--muted);margin-left:auto;white-space:nowrap}.body{font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}.typing{min-height:22px;padding:2px 20px;color:var(--muted);font-size:12px}.composer{display:flex;gap:9px;padding:13px;border-top:1px solid var(--line);background:#0b1929}.composer input{flex:1}.composer button{min-width:82px}footer{padding:9px 12px;text-align:center;color:#708ba3;font-size:10px;border-top:1px solid #162b40}
+    @media(max-width:600px){body{padding:0}.app{height:100dvh;min-height:0;border-radius:0;border:0;width:100%}header{padding:13px}.logo{width:38px;height:38px}.sub{max-width:180px;line-height:1.35}.status{font-size:11px;gap:5px}.join{padding:20px}.messages{padding:13px}.msg{max-width:90%}.composer{padding:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}.composer input{padding:12px}.composer button{min-width:68px;padding:11px}.roombar{padding:10px 12px}.count{margin-left:auto}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="logo" aria-hidden="true">✦</div>
+      <div><h1>Two Friends</h1><div class="sub">Real-time text chat · Computer + Phone</div></div>
+      <div class="status"><span class="dot"></span><span id="connection">Connecting…</span></div>
+    </header>
+    <section class="join" id="joinScreen">
+      <h2>Meet in your private room</h2>
+      <p>Enter a name and a room code. Both friends must use the exact same code.</p>
+      <form id="joinForm">
+        <label for="name">Your name</label>
+        <input id="name" maxlength="24" placeholder="Your display name" autocomplete="nickname" required>
+        <label for="room">Private room code</label>
+        <input id="room" maxlength="32" minlength="6" placeholder="Use 6+ letters/numbers" autocomplete="off" autocapitalize="characters" required>
+        <button id="joinBtn" type="submit">Join chat →</button>
+        <div class="error" id="joinError" role="status" aria-live="polite"></div>
+      </form>
+      <div class="hint">Only share your room code with your friend. This demo is not end-to-end encrypted; do not send sensitive information.</div>
+    </section>
+    <section class="chat" id="chatScreen">
+      <div class="roombar"><span>ROOM</span><span class="roomcode" id="roomLabel"></span><button class="copy" id="copyRoom" type="button">Copy code</button><span class="count" id="roomCount">1 connected</span></div>
+      <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text"></div>
+      <div class="typing" id="typing" aria-live="polite"></div>
+      <form class="composer" id="messageForm"><input id="messageInput" maxlength="500" placeholder="Write a message…" autocomplete="off" aria-label="Message" required><button id="sendBtn" type="submit" disabled>Send ↗</button></form>
+    </section>
+    <footer>Text only · Messages are not saved · Keep your room code private</footer>
+  </main>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const $ = (id) => document.getElementById(id);
+    let myName = "";
+    let currentRoomCode = "";
+    let joined = false;
+    let hasJoinedBefore = false;
+    let typingTimer = null;
+    let lastTypingSent = 0;
+
+    socket.on("connect", () => {
+      $("connection").textContent = "Connected";
+      if (hasJoinedBefore && myName && currentRoomCode) {
+        socket.emit("join-room", { name: myName, roomCode: currentRoomCode });
+      } else {
+        $("joinBtn").disabled = false;
+      }
+    });
+    socket.on("disconnect", () => {
+      $("connection").textContent = "Reconnecting…";
+      joined = false;
+      $("sendBtn").disabled = true;
+      $("typing").textContent = "Connection lost. Reconnecting…";
+    });
+    socket.on("connect_error", () => { $("connection").textContent = "Offline"; });
+
+    $("joinForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!socket.connected) {
+        $("joinError").textContent = "Not connected yet. Wait a moment and try again.";
+        return;
+      }
+      myName = $("name").value.trim().slice(0, 24);
+      currentRoomCode = $("room").value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g, "");
+      if (!myName || currentRoomCode.length < 6) {
+        $("joinError").textContent = "Enter your name and a room code with at least 6 letters/numbers.";
+        return;
+      }
+      $("joinError").textContent = "";
+      $("joinBtn").disabled = true;
+      socket.emit("join-room", { name: myName, roomCode: currentRoomCode });
+    });
+
+    socket.on("join-error", (message) => {
+      $("joinError").textContent = message;
+      $("joinBtn").disabled = false;
+      joined = false;
+    });
+    socket.on("joined", ({ name, roomCode, rejoined }) => {
+      joined = true;
+      hasJoinedBefore = true;
+      $("joinScreen").style.display = "none";
+      $("chatScreen").style.display = "flex";
+      $("roomLabel").textContent = roomCode;
+      $("sendBtn").disabled = false;
+      $("typing").textContent = "";
+      $("messageInput").focus();
+      if (!rejoined) addSystem(`You joined as ${name}. Share the room code with your friend.`);
+    });
+
+    function addSystem(message) {
+      const node = document.createElement("div");
+      node.className = "system";
+      node.textContent = message;
+      $("messages").appendChild(node);
+      scrollBottom();
+    }
+    function addMessage(data) {
+      const node = document.createElement("article");
+      node.className = "msg" + (data.senderId === socket.id ? " mine" : "");
+      const meta = document.createElement("div"); meta.className = "meta";
+      const name = document.createElement("span"); name.textContent = data.senderId === socket.id ? "You" : data.name;
+      const time = document.createElement("time");
+      time.textContent = new Date(data.time).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      meta.append(name, time);
+      const body = document.createElement("div"); body.className = "body"; body.textContent = data.message;
+      node.append(meta, body); $("messages").appendChild(node); scrollBottom();
+    }
+    function scrollBottom() { $("messages").scrollTop = $("messages").scrollHeight; }
+    socket.on("chat-message", addMessage);
+    socket.on("system-message", addSystem);
+    socket.on("room-count", (count) => { $("roomCount").textContent = `${count} ${count === 1 ? "person" : "people"} connected`; });
+    socket.on("typing", ({name, isTyping}) => {
+      $("typing").textContent = isTyping ? `${name} is typing…` : "";
+      clearTimeout(typingTimer);
+      if (isTyping) typingTimer = setTimeout(() => $("typing").textContent = "", 1800);
+    });
+    $("copyRoom").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(currentRoomCode); $("copyRoom").textContent = "Copied!"; }
+      catch { $("copyRoom").textContent = currentRoomCode; }
+      setTimeout(() => $("copyRoom").textContent = "Copy code", 1500);
+    });
+    $("messageForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const message = $("messageInput").value.trim();
+      if (!joined || !message || !socket.connected) return;
+      socket.emit("chat-message", message);
+      $("messageInput").value = "";
+      socket.emit("typing", false);
+      $("messageInput").focus();
+    });
+    $("messageInput").addEventListener("input", () => {
+      if (!joined) return;
+      const now = Date.now();
+      if (now - lastTypingSent > 600) {
+        socket.emit("typing", $("messageInput").value.length > 0);
+        lastTypingSent = now;
+      }
+    });
+    $("messageInput").addEventListener("blur", () => { if (joined) socket.emit("typing", false); });
+  </script>
+</body>
+</html>
